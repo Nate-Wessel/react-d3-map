@@ -1,0 +1,9 @@
+path.graticule {
+	fill: none;
+	stroke: rgba(0,0,0,0.2);
+	stroke-width: 0.5;
+}
+
+path.country {
+	fill: rgba(255,0,0,0.2);
+}
