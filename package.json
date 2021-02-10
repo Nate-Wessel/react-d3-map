@@ -1,0 +1,44 @@
+{
+  "name": "react-d3-map",
+  "version": "1.0.0",
+  "description": "demo an interactive map with d3, react, svg",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "npm i && npx webpack --config webpack.prod.js",
+    "build-dev": "npm i && npx webpack --config webpack.dev.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nate-Wessel/react-d3-map.git"
+  },
+  "keywords": [
+    "react",
+    "d3",
+    "svg",
+    "map"
+  ],
+  "author": "Nate Wessel",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Nate-Wessel/react-d3-map/issues"
+  },
+  "homepage": "https://github.com/Nate-Wessel/react-d3-map#readme",
+  "devDependencies": {
+    "@babel/core": "^7.12.13",
+    "@babel/preset-env": "^7.12.13",
+    "@babel/preset-react": "^7.12.13",
+    "babel-loader": "^8.2.2",
+    "clean-webpack-plugin": "^3.0.0",
+    "css-loader": "^5.0.2",
+    "html-webpack-plugin": "^5.0.0",
+    "style-loader": "^2.0.0",
+    "webpack": "^5.21.2",
+    "webpack-cli": "^4.5.0",
+    "webpack-merge": "^5.7.3"
+  },
+  "dependencies": {
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-router-dom": "^5.2.0"
+  }
+}
