@@ -11,3 +11,8 @@ path.country {
 circle.point {
 	fill: rgba(0,0,255,0.3)
 }
+
+path.contour {
+	fill: none;
+	stroke: rgba(0,0,0,0.4);
+}
