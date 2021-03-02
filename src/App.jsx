@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 import { geoMercator, geoPath, geoGraticule } from 'd3-geo'
 import { feature as topoFeature } from 'topojson-client'
 import { csv } from 'd3-fetch'
 import { contourDensity } from 'd3-contour'
+import { select } from 'd3-selection'
+import { drag } from 'd3-drag'
 
 import countriesTopo from './countries.json'
 
@@ -26,9 +28,15 @@ const initialHeight = window.innerHeight - breathingRoom
 export default function(){
 	const [ dimensions, setDimensions ] = useState([initialWidth,initialHeight])
 	const [ zoom, setZoom ] = useState(1000)
+	const svg = useRef(null)
 	useEffect(()=>{
 		window.addEventListener('resize',resizeMap)
 	},[])
+	useEffect(()=>{
+		console.log(svg.current)
+		select(svg.current)
+			.call( drag().on('start',setNewDragReference).on('drag',updateDrag) )
+	},[svg])
 	
 	// set projection 
 	const width = dimensions[0]
@@ -40,7 +48,7 @@ export default function(){
 	const pathGen = geoPath().projection( proj )
 	
 	return (
-		<svg id="map" 
+		<svg id="map" ref={svg}
 			width={width} 
 			height={height} 
 			onWheel={(e)=>updateZoom(e,zoom)}>
@@ -71,5 +79,13 @@ export default function(){
 		}
 		
 	}
+}
+
+function setNewDragReference(e){
+	console.log(e)
+}
+
+function updateDrag(e){
+	console.log(e)
 }
 
