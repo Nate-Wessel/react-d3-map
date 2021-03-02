@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { 
-	geoMercator, 
-	geoPath,
-	geoGraticule
-} from 'd3-geo'
+
+import { geoMercator, geoPath, geoGraticule } from 'd3-geo'
 import { feature as topoFeature } from 'topojson-client'
-import countriesTopo from './countries.json'
-import './map.css'
 import { csv } from 'd3-fetch'
 import { contourDensity } from 'd3-contour'
+
+import countriesTopo from './countries.json'
+
+import './map.css'
 import './main.css'
 
 const countries = topoFeature( countriesTopo, 'countries' )
@@ -26,23 +25,25 @@ const initialHeight = window.innerHeight - breathingRoom
 
 export default function(){
 	const [ dimensions, setDimensions ] = useState([initialWidth,initialHeight])
-	const [ zoom, setZoom ] = useState(1)
+	const [ zoom, setZoom ] = useState(1000)
 	useEffect(()=>{
 		window.addEventListener('resize',resizeMap)
 	},[])
 	
-	console.log('zoom factor is',zoom)
 	// set projection 
 	const width = dimensions[0]
 	const height = dimensions[1]
 	const proj = geoMercator()
 		.rotate( [ lambda, phi, gamma ] )
 		.translate( [ width/2, height/2 ] )
-		.scale(1000*zoom)
+		.scale(zoom)
 	const pathGen = geoPath().projection( proj )
 	
 	return (
-		<svg width={width} height={height} onWheel={(e)=>updateZoom(e,zoom)}> 
+		<svg id="map" 
+			width={width} 
+			height={height} 
+			onWheel={(e)=>updateZoom(e,zoom)}>
 			<g id="countries">
 				{countries && countries.features.map( (c,i) => {
 					return <path key={i} className="country" d={pathGen(c)}/>
@@ -62,10 +63,11 @@ export default function(){
 		] )
 	}
 	function updateZoom(zoomEvent,currentZoom){
+		const stepFactor = 1.5
 		if( zoomEvent.deltaY < 0 ){
-			setZoom( currentZoom * 2 )
+			setZoom( currentZoom * stepFactor )
 		}else{
-			setZoom( currentZoom / 2 )
+			setZoom( currentZoom / stepFactor )
 		}
 		
 	}
