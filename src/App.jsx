@@ -12,8 +12,7 @@ import { csv } from 'd3-fetch'
 import { contourDensity } from 'd3-contour'
 import './main.css'
 
-const width = 600
-const height = 600
+const countries = topoFeature( countriesTopo, 'countries' )
 
 const center = [120.2,23.7]
 
@@ -21,20 +20,24 @@ var lambda = -center[0] // yaw
 var phi = -center[1] // pitch
 var gamma = 0 // roll
 
-const proj = geoMercator()
-	.rotate( [ lambda, phi, gamma ] )
-	.translate( [ width/2, height/2 ] )
-	.scale(100)
-
-const pathGen = geoPath().projection( proj )
+const initialWidth = window.innerWidth-5
+const initialHeight = window.innerHeight-5
 
 export default function(){
-	const [ countries, setCountries ] = useState(null)
-
-	const [ contours, setContours ] = useState([])
-	useEffect(()=>{
-		setCountries( topoFeature( countriesTopo, 'countries' ) )
+	const [ dimensions, setDimensions ] = useState([initialWidth,initialHeight])
+	useEffect(()=>{ // resize to window
+		window.addEventListener('resize',resizeMap)
 	},[])
+	
+	const width = dimensions[0]
+	const height = dimensions[1]
+	
+	const proj = geoMercator()
+		.rotate( [ lambda, phi, gamma ] )
+		.translate( [ width/2, height/2 ] )
+		.scale(1000)
+	const pathGen = geoPath().projection( proj )
+	
 	return (
 		<svg width={width} height={height}> 
 			<g id="countries">
@@ -49,4 +52,8 @@ export default function(){
 			</g>
 		</svg>
 	)
+	function resizeMap(event){
+		let win = event.target
+		setDimensions([win.innerWidth-5,win.innerHeight-5])
+	}
 }
