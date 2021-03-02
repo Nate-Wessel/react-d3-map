@@ -20,18 +20,19 @@ var lambda = -center[0] // yaw
 var phi = -center[1] // pitch
 var gamma = 0 // roll
 
-const initialWidth = window.innerWidth-5
-const initialHeight = window.innerHeight-5
+const breathingRoom = 5
+
+const initialWidth = window.innerWidth - breathingRoom
+const initialHeight = window.innerHeight - breathingRoom
 
 export default function(){
 	const [ dimensions, setDimensions ] = useState([initialWidth,initialHeight])
-	useEffect(()=>{ // resize to window
+	useEffect(()=>{
 		window.addEventListener('resize',resizeMap)
 	},[])
 	
 	const width = dimensions[0]
 	const height = dimensions[1]
-	
 	const proj = geoMercator()
 		.rotate( [ lambda, phi, gamma ] )
 		.translate( [ width/2, height/2 ] )
@@ -52,8 +53,10 @@ export default function(){
 			</g>
 		</svg>
 	)
-	function resizeMap(event){
-		let win = event.target
-		setDimensions([win.innerWidth-5,win.innerHeight-5])
+	function resizeMap(){
+		setDimensions( [
+			window.innerWidth - breathingRoom,
+			window.innerHeight - breathingRoom
+		] )
 	}
 }
