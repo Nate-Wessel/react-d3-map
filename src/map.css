@@ -6,6 +6,8 @@ path.graticule {
 
 path.country {
 	fill: rgba(255,0,0,0.2);
+	stroke-width: 0.5px;
+	stroke: white;
 }
 
 circle.point {

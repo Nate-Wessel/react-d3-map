@@ -14,78 +14,119 @@ import './main.css'
 
 const countries = topoFeature( countriesTopo, 'countries' )
 
-const center = [120.2,23.7]
-
-var lambda = -center[0] // yaw
-var phi = -center[1] // pitch
-var gamma = 0 // roll
-
 const breathingRoom = 5
 
-const initialWidth = window.innerWidth - breathingRoom
-const initialHeight = window.innerHeight - breathingRoom
+const initMapStatus = {
+	width: window.innerWidth - breathingRoom, 
+	height: window.innerHeight - breathingRoom,
+	center: [112.2,29],
+	zoom: 1000,
+	drag: null,
+	proj: null // to be set in a sec
+}
+setProj(initMapStatus)
+
+function setProj(mapStatus){
+	mapStatus.proj = geoMercator()
+		.rotate( [ -mapStatus.center[0], -mapStatus.center[1] ] )
+		.translate( [ mapStatus.width/2, mapStatus.height/2 ] )
+		.scale(mapStatus.zoom)
+}
 
 export default function(){
-	const [ dimensions, setDimensions ] = useState([initialWidth,initialHeight])
-	const [ zoom, setZoom ] = useState(1000)
+	const [ mapStatus, setMapStatus ] = useState(initMapStatus)
 	const svg = useRef(null)
 	useEffect(()=>{
 		window.addEventListener('resize',resizeMap)
 	},[])
-	useEffect(()=>{
-		console.log(svg.current)
+	useEffect(()=>{ // runs after SVG renders, adding listeners
 		select(svg.current)
-			.call( drag().on('start',setNewDragReference).on('drag',updateDrag) )
+			.call( drag()
+				.on('start',startDrag)
+				.on('drag',updateDrag) 
+				.on('end',endDrag)
+			)
 	},[svg])
+
+	const pathGen = geoPath().projection( mapStatus.proj )
 	
-	// set projection 
-	const width = dimensions[0]
-	const height = dimensions[1]
-	const proj = geoMercator()
-		.rotate( [ lambda, phi, gamma ] )
-		.translate( [ width/2, height/2 ] )
-		.scale(zoom)
-	const pathGen = geoPath().projection( proj )
+	let transX = mapStatus.drag ? -mapStatus.drag.delta[0] : 0
+	let transY = mapStatus.drag ? -mapStatus.drag.delta[1] : 0
 	
 	return (
 		<svg id="map" ref={svg}
-			width={width} 
-			height={height} 
-			onWheel={(e)=>updateZoom(e,zoom)}>
-			<g id="countries">
-				{countries && countries.features.map( (c,i) => {
-					return <path key={i} className="country" d={pathGen(c)}/>
-				})}
-			</g>
-			<g id="graticules">
-				{geoGraticule().lines().map( (g,i) => {
-					return <path key={i} className="graticule" d={pathGen(g)}/>
-				})}
+			width={mapStatus.width} 
+			height={mapStatus.height} 
+			onWheel={updateZoom}>
+			<g transform={`translate(${transX},${transY})`}>
+				<g id="countries">
+					{countries && countries.features.map( (c,i) => {
+						return <path key={i} className="country" d={pathGen(c)}/>
+					})}
+				</g>
+				<g id="graticules">
+					{geoGraticule().lines().map( (g,i) => {
+						return <path key={i} className="graticule" d={pathGen(g)}/>
+					})}
+				</g>
 			</g>
 		</svg>
 	)
-	function resizeMap(){
-		setDimensions( [
-			window.innerWidth - breathingRoom,
-			window.innerHeight - breathingRoom
-		] )
+	function resizeMap(e){
+		setMapStatus( current => {
+			current.width = window.innerWidth - breathingRoom
+			current.height = window.innerHeight - breathingRoom
+			return current
+		} )
 	}
-	function updateZoom(zoomEvent,currentZoom){
+	function updateZoom(e){
 		const stepFactor = 1.5
-		if( zoomEvent.deltaY < 0 ){
-			setZoom( currentZoom * stepFactor )
-		}else{
-			setZoom( currentZoom / stepFactor )
-		}
+		setMapStatus( current => {
+			let changed = {}
+			Object.assign(changed,current)
+			if( e.deltaY < 0 ){
+				changed.zoom *= stepFactor
+			}else{
+				changed.zoom /= stepFactor
+			}
+			setProj(changed)
+			return changed
+		} )
 		
 	}
-}
-
-function setNewDragReference(e){
-	console.log(e)
-}
-
-function updateDrag(e){
-	console.log(e)
+	function startDrag(e){
+		setMapStatus( current => {
+			let changed = {}
+			Object.assign(changed,current)
+			changed.drag = { start: [e.x,e.y], delta: [0,0] }
+			return changed
+		})
+	}
+	function updateDrag(e){
+		setMapStatus( current => {
+			let changed = {}
+			Object.assign(changed,current)
+			changed.drag.delta = [
+				current.drag.start[0] - e.x,
+				current.drag.start[1] - e.y
+			]
+			return changed
+		} )
+	}
+	function endDrag(e){
+		setMapStatus( current => {
+			let changed = {}
+			Object.assign(changed,current)
+			let centerPx = current.proj(current.center)
+			let newCenter = current.proj.invert( [
+				centerPx[0] + current.drag.start[0] - e.x,
+				centerPx[1] + current.drag.start[1] - e.y
+			] )
+			changed.center = newCenter
+			changed.drag = null
+			setProj(changed)
+			return changed
+		})
+	}
 }
 
